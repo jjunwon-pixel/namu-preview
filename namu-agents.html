@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Namu — 에이전트 팀</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-dark:#178a63;--green-light:#e6f5ef;
+  --bg:#f7f8f9;--white:#fff;--text:#1a1a1a;--text2:#444;--muted:#888;
+  --border:#e8e8e8;--border2:#d5d5d5;--shadow:0 1px 4px rgba(0,0,0,0.07);
+  --amber:#f59e0b;--red:#ef4444;
+}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+.nav{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.nav-in{max-width:780px;margin:0 auto;padding:0 16px;height:54px;display:flex;align-items:center;gap:10px}
+.nav-logo{font-size:19px;font-weight:900;color:var(--green);display:flex;align-items:center;gap:5px}
+.nav-div{width:1px;height:16px;background:var(--border2)}
+.nav-tit{font-size:13px;font-weight:600;color:var(--text2)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.nav-badge{font-size:11px;font-weight:600;color:var(--green);background:var(--green-light);border-radius:20px;padding:4px 11px;display:flex;align-items:center;gap:5px}
+.ldot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:ld 1.4s infinite}
+@keyframes ld{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* PROGRESS */
+.prog-wrap{height:3px;background:var(--border);display:none}
+.prog-wrap.on{display:block}
+.prog-fill{height:100%;background:var(--green);width:0%;transition:width .4s ease}
+
+.main{max-width:780px;margin:0 auto;padding:20px 16px 80px}
+.sh{display:flex;align-items:center;gap:6px;margin:20px 0 12px;font-size:15px;font-weight:700}
+.sh .sub{font-size:11px;color:var(--muted);font-weight:400}
+
+/* MODE TOGGLE */
+.mode-toggle{display:flex;gap:8px;margin-bottom:16px}
+.mode-btn{flex:1;padding:10px;border:1.5px solid var(--border2);border-radius:10px;background:var(--white);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;text-align:center}
+.mode-btn.on{border-color:var(--green);background:var(--green-light);color:var(--green-dark)}
+.mode-btn .mode-icon{font-size:18px;display:block;margin-bottom:3px}
+.mode-btn .mode-sub{font-size:10px;font-weight:400;color:var(--muted);margin-top:2px}
+.mode-btn.on .mode-sub{color:var(--green-dark)}
+
+/* PIPELINE VIEW */
+.pipeline-wrap{background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:16px;margin-bottom:12px;display:none}
+.pipeline-wrap.on{display:block}
+.pipeline-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.pipeline-steps{display:flex;flex-direction:column;gap:6px}
+.pipe-step{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);transition:all .3s}
+.pipe-step.current{border-color:var(--green);background:var(--green-light)}
+.pipe-step.done-step{border-color:#b2dfd0;background:#f0fdf9}
+.pipe-step.waiting{opacity:.5}
+.pipe-num{width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--white);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pipe-step.current .pipe-num{background:var(--green)}
+.pipe-step.done-step .pipe-num{background:#10b981}
+.pipe-label{font-size:12px;font-weight:600;color:var(--text2);flex:1}
+.pipe-step.current .pipe-label{color:var(--green-dark)}
+.pipe-status{font-size:10px;font-weight:600;color:var(--muted)}
+.pipe-step.current .pipe-status{color:var(--green)}
+.pipe-step.done-step .pipe-status{color:#10b981}
+
+.auto-controls{display:flex;gap:8px;margin-top:12px}
+.auto-start-btn{flex:1;height:44px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:background .15s}
+.auto-start-btn:hover{background:var(--green-dark)}
+.auto-start-btn:disabled{background:#ccc;cursor:not-allowed}
+.auto-pause-btn{height:44px;padding:0 16px;background:var(--white);color:var(--text2);border:1.5px solid var(--border2);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif}
+.auto-pause-btn:hover{border-color:var(--amber);color:var(--amber)}
+
+/* MANUAL VIEW */
+.manual-wrap{display:none}
+.manual-wrap.on{display:block}
+.topic-card{background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;margin-bottom:12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;background:var(--bg);border:1.5px solid var(--border2);border-radius:20px;padding:6px 13px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .15s;white-space:nowrap}
+.chip:hover{border-color:var(--green);color:var(--green);background:var(--green-light)}
+.chip.on{border-color:var(--green);background:var(--green);color:#fff;font-weight:700}
+.irow{display:flex;gap:8px}
+.tinput{flex:1;height:44px;border:1.5px solid var(--border2);border-radius:8px;padding:0 14px;font-size:13px;font-weight:500;color:var(--text);font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .15s}
+.tinput:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+.tinput::placeholder{color:#bbb;font-weight:400}
+.rbtn{height:44px;padding:0 20px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;transition:background .15s}
+.rbtn:hover{background:var(--green-dark)}
+.rbtn:disabled{background:#ccc;cursor:not-allowed}
+
+/* ORCH */
+.orch{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:0 10px 10px 0;padding:13px 16px;display:flex;align-items:flex-start;gap:12px;box-shadow:var(--shadow);margin-bottom:12px}
+.orch-ic{width:36px;height:36px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.orch-nm{font-size:12px;font-weight:700;color:var(--green-dark)}
+.orch-msg{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.6}
+
+/* CURRENT TOPIC LABEL */
+.current-topic-badge{display:none;background:var(--green-light);border:1px solid #b2dfd0;border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;font-weight:600;color:var(--green-dark)}
+.current-topic-badge.on{display:flex;align-items:center;gap:8px}
+
+/* AGENTS */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+@media(max-width:500px){.grid{grid-template-columns:1fr}}
+.acard{background:var(--white);border:1.5px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.acard.thinking{border-color:var(--green);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+.acard.done{border-color:#b2dfd0}
+.atop{padding:12px 14px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.aico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ep{background:#f3f0ff}.ed{background:#e8f4ff}.ef{background:#fff0f0}.ec{background:#fffbeb}
+.ainf{flex:1;min-width:0}
+.anm{font-size:12px;font-weight:700;color:var(--text)}
+.arl{font-size:10px;color:var(--muted);margin-top:1px}
+.abadge{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--bg);color:var(--muted);border:1px solid var(--border);white-space:nowrap}
+.acard.thinking .abadge{background:var(--green-light);color:var(--green-dark);border-color:#b2dfd0}
+.acard.done .abadge{background:var(--green-light);color:var(--green-dark);border-color:#b2dfd0}
+.abody{padding:12px 14px;min-height:100px;max-height:180px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.aout{font-size:11px;line-height:1.75;color:var(--muted);word-break:keep-all}
+.aout.active{color:var(--text2)}
+
+/* RESULTS ACCORDION */
+.results-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.result-item{background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.result-head{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .15s}
+.result-head:hover{background:var(--bg)}
+.result-topic{font-size:12px;font-weight:700;color:var(--text);flex:1}
+.result-meta{font-size:10px;color:var(--muted);white-space:nowrap}
+.result-arrow{font-size:11px;color:var(--muted);flex-shrink:0}
+.result-body{display:none;padding:14px 16px;border-top:1px solid var(--border);font-size:11px;line-height:1.8;color:var(--text2);word-break:keep-all}
+.result-body.open{display:block}
+.result-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-bottom:6px}
+.tag-green{background:var(--green-light);color:var(--green-dark)}
+
+/* SYNTH */
+.synth{display:none;background:var(--white);border:1.5px solid var(--green);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px}
+.synth.on{display:block}
+.synth-hd{background:var(--green-light);border-bottom:1px solid #b2dfd0;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.synth-tit{font-size:13px;font-weight:700;color:var(--green-dark);display:flex;align-items:center;gap:7px}
+.cpbtn{font-size:11px;font-weight:600;color:var(--green-dark);background:var(--white);border:1px solid #b2dfd0;border-radius:6px;padding:4px 11px;cursor:pointer;font-family:'Noto Sans KR',sans-serif}
+.cpbtn:hover{background:var(--green-light)}
+.synth-bd{padding:16px;font-size:12px;line-height:1.85;color:var(--text2);word-break:keep-all}
+
+/* ALL DONE BANNER */
+.all-done{display:none;background:var(--green);border-radius:12px;padding:20px;text-align:center;color:#fff;margin-bottom:12px}
+.all-done.on{display:block}
+.all-done-title{font-size:16px;font-weight:900;margin-bottom:6px}
+.all-done-sub{font-size:12px;opacity:.85}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-in">
+    <div class="nav-logo">🌿 namu</div>
+    <div class="nav-div"></div>
+    <div class="nav-tit">에이전트 스튜디오</div>
+    <div class="nav-right">
+      <div class="nav-badge"><div class="ldot"></div><span id="navStatus">대기중</span></div>
+    </div>
+  </div>
+</nav>
+
+<div class="prog-wrap" id="pw"><div class="prog-fill" id="pf"></div></div>
+
+<div class="main">
+
+  <!-- MODE TOGGLE -->
+  <div class="sh">⚙️ 실행 모드 선택</div>
+  <div class="mode-toggle">
+    <button class="mode-btn on" id="modeAuto" onclick="setMode('auto')">
+      <span class="mode-icon">🤖</span>
+      자동 파이프라인
+      <div class="mode-sub">전체 주제를 순서대로 자동 실행</div>
+    </button>
+    <button class="mode-btn" id="modeManual" onclick="setMode('manual')">
+      <span class="mode-icon">✋</span>
+      수동 실행
+      <div class="mode-sub">주제를 직접 선택해서 실행</div>
+    </button>
+  </div>
+
+  <!-- AUTO PIPELINE -->
+  <div class="pipeline-wrap on" id="pipelineWrap">
+    <div class="pipeline-title">
+      <span>📋 자동 실행 파이프라인 <span style="font-size:11px;font-weight:400;color:var(--muted)">— 순서대로 자동 진행</span></span>
+      <span id="pipeCounter" style="font-size:11px;color:var(--muted)">0 / 8</span>
+    </div>
+    <div class="pipeline-steps" id="pipeSteps"></div>
+    <div class="auto-controls">
+      <button class="auto-start-btn" id="autoStartBtn" onclick="startPipeline()">▶ 전체 자동 실행 시작</button>
+      <button class="auto-pause-btn" id="autoPauseBtn" onclick="togglePause()" style="display:none">⏸ 일시정지</button>
+    </div>
+  </div>
+
+  <!-- MANUAL -->
+  <div class="manual-wrap" id="manualWrap">
+    <div class="topic-card">
+      <div class="chips">
+        <button class="chip" onclick="pick(this,'Supabase DB 스키마 설계 — shops, therapists, attendance, bookings 테이블 전체')">📦 DB 스키마</button>
+        <button class="chip" onclick="pick(this,'예약 동의 팝업 UX 설계 — 10분 자동소멸 + 랜덤 배정 안내, 동의 후 예약 확정 플로우')">📱 예약 팝업</button>
+        <button class="chip" onclick="pick(this,'구글 OAuth 로그인 설계 — Supabase Auth 연동, 첫 예약 시 전화번호 1회 입력 플로우')">🔑 구글 로그인</button>
+        <button class="chip" onclick="pick(this,'Zalo OA API 오너 알림 설계 — 새 예약 발생 시 알림 메시지 포맷 및 연동 방법')">🔔 Zalo 알림</button>
+        <button class="chip" onclick="pick(this,'오너용 출근 체크 앱 — 담당자 출근/휴무 관리 UI 및 API 설계')">👔 출근 체크</button>
+        <button class="chip" onclick="pick(this,'고객 예약 완료 화면 설계 — 캡처용 증빙 화면 UX, 10분 소멸 안내')">✅ 예약완료</button>
+        <button class="chip" onclick="pick(this,'어드민 대시보드 전체 설계 — 출근현황, 담당자별 거래건수·매출현황, 예약목록, 담당자 프로필·사진 관리')">🏠 어드민</button>
+        <button class="chip" onclick="pick(this,'담당자 사진 업로드 설계 — 1장 업로드 후 썸네일·히어로 2가지 크기 자동 생성, Supabase Storage 구조')">📸 사진 업로드</button>
+      </div>
+      <div class="irow">
+        <input class="tinput" id="ti" placeholder="주제를 입력하거나 위에서 선택하세요" />
+        <button class="rbtn" id="rb" onclick="runManual()">▶ 실행</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORCH -->
+  <div class="orch">
+    <div class="orch-ic">🌿</div>
+    <div style="flex:1">
+      <div class="orch-nm">Namu PM · 오케스트레이터</div>
+      <div class="orch-msg" id="om">모드를 선택하고 실행하세요.</div>
+    </div>
+  </div>
+
+  <!-- CURRENT TOPIC -->
+  <div class="current-topic-badge" id="currentTopicBadge">
+    <span>⚡</span><span id="currentTopicText"></span>
+  </div>
+
+  <!-- AGENTS -->
+  <div class="sh">🤖 에이전트 작업 현황</div>
+  <div class="grid">
+    <div class="acard" id="c-plan">
+      <div class="atop">
+        <div class="aico ep">🎨</div>
+        <div class="ainf"><div class="anm">기획 에이전트</div><div class="arl">UX · 플로우 · 문구</div></div>
+        <div class="abadge" id="b-plan">대기</div>
+      </div>
+      <div class="abody"><div class="aout" id="o-plan">대기 중...</div></div>
+    </div>
+    <div class="acard" id="c-dev">
+      <div class="atop">
+        <div class="aico ed">💻</div>
+        <div class="ainf"><div class="anm">개발 에이전트</div><div class="arl">DB · API · 코드</div></div>
+        <div class="abadge" id="b-dev">대기</div>
+      </div>
+      <div class="abody"><div class="aout" id="o-dev">대기 중...</div></div>
+    </div>
+    <div class="acard" id="c-feed">
+      <div class="atop">
+        <div class="aico ef">🔍</div>
+        <div class="ainf"><div class="anm">피드백 에이전트</div><div class="arl">리뷰 · 리스크</div></div>
+        <div class="abadge" id="b-feed">대기</div>
+      </div>
+      <div class="abody"><div class="aout" id="o-feed">대기 중...</div></div>
+    </div>
+    <div class="acard" id="c-doc">
+      <div class="atop">
+        <div class="aico ec">📋</div>
+        <div class="ainf"><div class="anm">문서 에이전트</div><div class="arl">스펙 · 결정사항</div></div>
+        <div class="abadge" id="b-doc">대기</div>
+      </div>
+      <div class="abody"><div class="aout" id="o-doc">대기 중...</div></div>
+    </div>
+  </div>
+
+  <!-- CURRENT SYNTH -->
+  <div class="synth" id="sw">
+    <div class="synth-hd">
+      <div class="synth-tit">🌿 PM 종합 리포트</div>
+      <button class="cpbtn" onclick="cp()">📋 복사</button>
+    </div>
+    <div class="synth-bd" id="sb"></div>
+  </div>
+
+  <!-- ALL DONE -->
+  <div class="all-done" id="allDone">
+    <div class="all-done-title">🎉 전체 파이프라인 완료!</div>
+    <div class="all-done-sub">8개 주제 분석이 모두 완료되었습니다. 아래에서 전체 결과를 확인하세요.</div>
+  </div>
+
+  <!-- RESULTS ACCORDION -->
+  <div class="sh" id="resultsTitle" style="display:none">📁 전체 결과 보관함</div>
+  <div class="results-list" id="resultsList"></div>
+
+</div>
+
+<script>
+const CTX = `당신은 Namu(나무) 서비스 전문 에이전트입니다.
+
+[서비스 개요]
+Namu: 베트남(다낭·호이안·호치민) 소형 마사지샵 모바일 예약 웹앱.
+헤비유저: 베트남 여행 중 한국인 관광객.
+기술스택: Next.js 14 App Router, Supabase(PostgreSQL + Auth), Vercel, Zalo OA API.
+PWA 모바일웹. 아이폰·안드로이드 모두 지원.
+
+[확정된 기획 — 반드시 이 내용 기반으로 답변]
+1. 예약 플로우: [예약하기] 클릭 → 동의 팝업 1회("10분 자동소멸+랜덤배정" 안내) → 예약 확정
+2. 10분 자동소멸: 슬롯 없음. 예약 후 10분 경과 시 서버에서 자동소멸 (pg_cron)
+3. 랜덤 배정: 소멸 후 방문 시 당일 출근 담당자 중 랜덤 배정
+4. 로그인: 구글 OAuth (Supabase Auth). 별도 회원가입 없음
+5. 전화번호: 첫 예약 시 1회 입력 후 저장. 재예약 시 자동 입력
+6. 고객 알림: 없음. 예약완료 화면 캡처로 증빙
+7. 오너 알림: Zalo OA API만 사용
+8. 언어: 한국어 단일(lang=ko). 구글 자동번역 대응. next-intl 없음
+9. 어드민: 출근관리, 예약현황, 담당자별 거래건수·매출현황, 담당자 프로필·사진관리, 리뷰관리
+10. 사진: 담당자당 1장 업로드 → 브라우저 크롭 → thumbnail(240×240)+hero(480×640) Supabase Storage 저장
+11. 수익: Phase1 무료+수수료8% / Phase2 구독제
+
+반드시 한국어로, 핵심만 간결하게 답변.`;
+
+const PIPELINE = [
+  { id:'db',    label:'📦 DB 스키마',     topic:'Supabase DB 스키마 설계 — shops, therapists, attendance, bookings 테이블 전체' },
+  { id:'login', label:'🔑 구글 로그인',   topic:'구글 OAuth 로그인 설계 — Supabase Auth 연동, 첫 예약 시 전화번호 1회 입력 플로우' },
+  { id:'popup', label:'📱 예약 팝업',     topic:'예약 동의 팝업 UX 설계 — 10분 자동소멸 + 랜덤 배정 안내, 동의 후 예약 확정 플로우' },
+  { id:'done',  label:'✅ 예약완료 화면', topic:'고객 예약 완료 화면 설계 — 캡처용 증빙 화면 UX, 10분 소멸 안내' },
+  { id:'zalo',  label:'🔔 Zalo 알림',    topic:'Zalo OA API 오너 알림 설계 — 새 예약 발생 시 알림 메시지 포맷 및 연동 방법' },
+  { id:'attend',label:'👔 출근 체크',     topic:'오너용 출근 체크 앱 — 담당자 출근/휴무 관리 UI 및 API 설계' },
+  { id:'admin', label:'🏠 어드민 대시보드', topic:'어드민 대시보드 전체 설계 — 출근현황, 담당자별 거래건수·매출현황, 예약목록, 담당자 프로필·사진 관리' },
+  { id:'photo', label:'📸 사진 업로드',   topic:'담당자 사진 업로드 설계 — 1장 업로드 후 썸네일·히어로 2가지 크기 자동 생성, Supabase Storage 구조' },
+];
+
+let mode = 'auto';
+let running = false;
+let paused = false;
+let pipeIdx = 0;
+let allResults = [];
+let pauseResolver = null;
+
+// ── MODE ──
+function setMode(m) {
+  mode = m;
+  document.getElementById('modeAuto').className   = 'mode-btn' + (m==='auto'?' on':'');
+  document.getElementById('modeManual').className = 'mode-btn' + (m==='manual'?' on':'');
+  document.getElementById('pipelineWrap').className = 'pipeline-wrap' + (m==='auto'?' on':'');
+  document.getElementById('manualWrap').className   = 'manual-wrap'   + (m==='manual'?' on':'');
+}
+
+// ── PIPELINE STEPS RENDER ──
+function renderPipeSteps() {
+  document.getElementById('pipeSteps').innerHTML = PIPELINE.map((p, i) => `
+    <div class="pipe-step waiting" id="ps-${p.id}">
+      <div class="pipe-num">${i+1}</div>
+      <div class="pipe-label">${p.label}</div>
+      <div class="pipe-status" id="pss-${p.id}">대기</div>
+    </div>`).join('');
+  document.getElementById('pipeCounter').textContent = `0 / ${PIPELINE.length}`;
+}
+
+function setPipeState(id, state) {
+  const el  = document.getElementById('ps-'+id);
+  const st  = document.getElementById('pss-'+id);
+  el.className = 'pipe-step ' + (state==='current'?'current':state==='done'?'done-step':'waiting');
+  st.textContent = state==='current'?'실행중 ⏳':state==='done'?'완료 ✓':'대기';
+}
+
+// ── AGENTS ──
+function setState(id, s) {
+  document.getElementById('c-'+id).className = 'acard'+(s==='thinking'?' thinking':s==='done'?' done':'');
+  document.getElementById('b-'+id).textContent = s==='thinking'?'실행중 ⏳':s==='done'?'완료 ✓':'대기';
+}
+function setOut(id, txt) {
+  const el = document.getElementById('o-'+id);
+  el.className = 'aout'+(txt&&txt!=='대기 중...'&&txt!=='준비 중...'?' active':'');
+  el.innerHTML = txt.replace(/\n/g,'<br>');
+}
+function setP(p){ document.getElementById('pf').style.width=p+'%' }
+function orch(t){ document.getElementById('om').textContent=t }
+
+// ── API ──
+async function ask(prompt, sys) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:800,
+      system: sys||CTX,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  if(!res.ok){ const e=await res.text(); throw new Error(`API ${res.status}: ${e.slice(0,100)}`); }
+  const d = await res.json();
+  return d.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+
+// ── RUN ONE TOPIC ──
+async function runTopic(topic) {
+  document.getElementById('sw').classList.remove('on');
+  document.getElementById('currentTopicBadge').className = 'current-topic-badge on';
+  document.getElementById('currentTopicText').textContent = topic;
+
+  ['plan','dev','feed','doc'].forEach(id=>{ setState(id,'idle'); setOut(id,'준비 중...'); });
+  setP(5);
+
+  orch(`"${topic.slice(0,30)}..." — 기획·개발 동시 실행 중...`);
+  setState('plan','thinking'); setState('dev','thinking');
+  setOut('plan','분석 중... ⏳'); setOut('dev','분석 중... ⏳');
+
+  const [planR, devR] = await Promise.all([
+    ask(`주제: ${topic}\n\nUX·기획 관점 핵심 설계안 bullet 3~5개. 각 2줄 이내. 확정 기획 기반.`,
+        CTX+'\n너는 UX/기획 전문가.'),
+    ask(`주제: ${topic}\n\n기술 구현 방안 bullet 3~5개. 필요시 짧은 코드 포함. 확정 기술스택 기준.`,
+        CTX+'\n너는 풀스택 개발자.')
+  ]);
+  setState('plan','done'); setOut('plan', planR);
+  setState('dev','done');  setOut('dev', devR);
+  setP(50);
+
+  orch('피드백 에이전트 검토 중...');
+  setState('feed','thinking'); setOut('feed','검토 중... ⏳');
+  const feedR = await ask(
+    `주제: ${topic}\n[기획안]\n${planR.slice(0,300)}\n[개발안]\n${devR.slice(0,300)}\n\n리스크 2~3개 + 개선제안 2~3개.`,
+    CTX+'\n너는 비판적 검토자.'
+  );
+  setState('feed','done'); setOut('feed', feedR);
+  setP(75);
+
+  orch('문서 에이전트 정리 중...');
+  setState('doc','thinking'); setOut('doc','정리 중... ⏳');
+  const docR = await ask(
+    `주제: ${topic}\n기획:${planR.slice(0,180)}\n개발:${devR.slice(0,180)}\n피드백:${feedR.slice(0,180)}\n\n확정사항 3~5개 + 다음액션 2~3개.`,
+    CTX+'\n너는 기술문서 작성자.'
+  );
+  setState('doc','done'); setOut('doc', docR);
+  setP(88);
+
+  orch('PM 종합 리포트 작성 중...');
+  document.getElementById('sw').classList.add('on');
+  document.getElementById('sb').textContent = '종합 중...';
+  const synthR = await ask(
+    `주제: "${topic}"\n[기획]${planR}\n[개발]${devR}\n[피드백]${feedR}\n[문서]${docR}\n\n종합:\n1. 핵심 결정사항 3개\n2. 즉시 실행 다음 액션 3개\n3. 주의 리스크 2개`,
+    CTX+'\n너는 팀 PM.'
+  );
+  document.getElementById('sb').innerHTML = synthR.replace(/\n/g,'<br>');
+  setP(100);
+
+  return { topic, planR, devR, feedR, docR, synthR };
+}
+
+// ── PAUSE ──
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('autoPauseBtn');
+  if (paused) {
+    btn.textContent = '▶ 재개';
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--green)';
+    orch('⏸ 일시정지됨. 재개 버튼을 누르면 계속됩니다.');
+  } else {
+    btn.textContent = '⏸ 일시정지';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    if (pauseResolver) { pauseResolver(); pauseResolver = null; }
+  }
+}
+
+function waitIfPaused() {
+  if (!paused) return Promise.resolve();
+  return new Promise(resolve => { pauseResolver = resolve; });
+}
+
+// ── RESULTS ──
+function addResult(idx, result) {
+  allResults.push(result);
+  document.getElementById('resultsTitle').style.display = 'flex';
+  const list = document.getElementById('resultsList');
+  const div = document.createElement('div');
+  div.className = 'result-item';
+  div.innerHTML = `
+    <div class="result-head" onclick="toggleResult(${allResults.length-1})">
+      <span style="font-size:18px">${PIPELINE[idx].label.split(' ')[0]}</span>
+      <div class="result-topic">${PIPELINE[idx].label}</div>
+      <div class="result-meta">완료</div>
+      <div class="result-arrow" id="ra-${allResults.length-1}">▼</div>
+    </div>
+    <div class="result-body" id="rb-${allResults.length-1}">
+      <div><span class="result-tag tag-green">PM 종합</span></div>
+      ${result.synthR.replace(/\n/g,'<br>')}
+    </div>`;
+  list.appendChild(div);
+}
+
+function toggleResult(i) {
+  const body  = document.getElementById('rb-'+i);
+  const arrow = document.getElementById('ra-'+i);
+  const open  = body.classList.toggle('open');
+  arrow.textContent = open ? '▲' : '▼';
+}
+
+// ── AUTO PIPELINE ──
+async function startPipeline() {
+  if (running) return;
+  running = true;
+  paused = false;
+  pipeIdx = 0;
+  allResults = [];
+  document.getElementById('resultsList').innerHTML = '';
+  document.getElementById('resultsTitle').style.display = 'none';
+  document.getElementById('allDone').classList.remove('on');
+  document.getElementById('autoStartBtn').disabled = true;
+  document.getElementById('autoStartBtn').textContent = '⏳ 실행중...';
+  document.getElementById('autoPauseBtn').style.display = 'inline-flex';
+  document.getElementById('pw').classList.add('on');
+  document.getElementById('navStatus').textContent = '실행중';
+
+  renderPipeSteps();
+
+  try {
+    for (let i = 0; i < PIPELINE.length; i++) {
+      await waitIfPaused();
+      pipeIdx = i;
+      setPipeState(PIPELINE[i].id, 'current');
+      document.getElementById('pipeCounter').textContent = `${i+1} / ${PIPELINE.length}`;
+      document.getElementById('pipeSteps').children[i].scrollIntoView({behavior:'smooth',block:'nearest'});
+
+      const result = await runTopic(PIPELINE[i].topic);
+      setPipeState(PIPELINE[i].id, 'done');
+      addResult(i, result);
+
+      orch(`✅ [${i+1}/${PIPELINE.length}] "${PIPELINE[i].label}" 완료${i < PIPELINE.length-1 ? ' — 잠시 후 다음 주제로...' : ''}`);
+
+      // 다음 주제로 넘어가기 전 1초 대기
+      if (i < PIPELINE.length - 1) await new Promise(r => setTimeout(r, 1200));
+    }
+
+    // 전체 완료
+    document.getElementById('allDone').classList.add('on');
+    document.getElementById('currentTopicBadge').className = 'current-topic-badge';
+    orch('🎉 전체 파이프라인 완료! 아래에서 모든 결과를 확인하세요.');
+    document.getElementById('navStatus').textContent = '완료 ✓';
+    setP(100);
+
+  } catch(e) {
+    orch(`⚠️ 오류: ${e.message}`);
+    document.getElementById('navStatus').textContent = '오류 발생';
+    console.error(e);
+  }
+
+  running = false;
+  document.getElementById('autoStartBtn').disabled = false;
+  document.getElementById('autoStartBtn').textContent = '▶ 다시 실행';
+  document.getElementById('autoPauseBtn').style.display = 'none';
+}
+
+// ── MANUAL ──
+function pick(btn, text) {
+  document.querySelectorAll('.chip').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('ti').value = text;
+}
+
+async function runManual() {
+  if (running) return;
+  const topic = document.getElementById('ti').value.trim();
+  if (!topic) { alert('주제를 입력해 주세요!'); return; }
+  running = true;
+  const rb = document.getElementById('rb');
+  rb.disabled = true; rb.textContent = '⏳ 실행중';
+  document.getElementById('pw').classList.add('on');
+  document.getElementById('navStatus').textContent = '실행중';
+
+  try {
+    const result = await runTopic(topic);
+    orch(`✅ "${topic.slice(0,20)}..." 완료!`);
+    document.getElementById('navStatus').textContent = '완료 ✓';
+  } catch(e) {
+    orch(`⚠️ 오류: ${e.message}`);
+    console.error(e);
+  }
+
+  running = false;
+  rb.disabled = false; rb.textContent = '▶ 실행';
+}
+
+function cp() {
+  navigator.clipboard.writeText(document.getElementById('sb').innerText).then(()=>{
+    const b=document.querySelector('.cpbtn');
+    b.textContent='✅ 복사됨'; setTimeout(()=>b.textContent='📋 복사',2000);
+  });
+}
+
+// 초기화
+renderPipeSteps();
+</script>
+</body>
+</html>
